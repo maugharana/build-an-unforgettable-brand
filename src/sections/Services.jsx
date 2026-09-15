@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PACKAGES = [
   {
@@ -39,6 +40,11 @@ const PACKAGES = [
 ];
 
 export default function Services() {
+  const [openIndex, setOpenIndex] = useState(1);
+
+  const scrollToContact = () =>
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+
   return (
     <section id="services" className="section services">
       <div className="container">
@@ -52,33 +58,59 @@ export default function Services() {
           </p>
         </div>
 
-        <div className="services-grid">
-          {PACKAGES.map((pkg, i) => (
-            <motion.div
-              key={pkg.name}
-              className={`service-card ${pkg.highlighted ? "service-card-highlight" : ""}`}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.6, delay: i * 0.12 }}
-            >
-              {pkg.highlighted && <span className="service-badge">Most popular</span>}
-              <p className="service-tagline">{pkg.tagline}</p>
-              <h3>{pkg.name}</h3>
-              <p className="service-price">{pkg.price}</p>
-              <ul className="service-features">
-                {pkg.features.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-              <button
-                className={`btn ${pkg.highlighted ? "btn-primary" : "btn-ghost"} service-cta`}
-                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+        <div className="services-list">
+          {PACKAGES.map((pkg, i) => {
+            const open = openIndex === i;
+            return (
+              <motion.div
+                className={`services-row ${open ? "services-row-open" : ""} ${pkg.highlighted ? "services-row-highlight" : ""}`}
+                key={pkg.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
               >
-                Apply for this program
-              </button>
-            </motion.div>
-          ))}
+                <button
+                  className="services-row-head"
+                  onClick={() => setOpenIndex(open ? -1 : i)}
+                  aria-expanded={open}
+                >
+                  <div className="services-row-title">
+                    <span className="services-row-tagline">{pkg.tagline}</span>
+                    <h3>{pkg.name}</h3>
+                  </div>
+                  <div className="services-row-meta">
+                    <span className="services-row-price">{pkg.price}</span>
+                    <span className="services-row-arrow">{open ? "−" : "→"}</span>
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {open && (
+                    <motion.div
+                      className="services-row-body"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ul className="service-features">
+                        {pkg.features.map((f) => (
+                          <li key={f}>{f}</li>
+                        ))}
+                      </ul>
+                      <button
+                        className={`btn ${pkg.highlighted ? "btn-primary" : "btn-ghost"} service-cta`}
+                        onClick={scrollToContact}
+                      >
+                        Apply for this program
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

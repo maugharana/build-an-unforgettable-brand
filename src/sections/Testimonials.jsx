@@ -43,8 +43,11 @@ export default function Testimonials() {
             >
               <blockquote>"{t.quote}"</blockquote>
               <figcaption>
-                <strong>{t.name}</strong>
-                <span>{t.role}</span>
+                <span className="testimonial-avatar">{t.name.charAt(0)}</span>
+                <span className="testimonial-info">
+                  <strong>{t.name}</strong>
+                  <span>{t.role}</span>
+                </span>
               </figcaption>
             </motion.figure>
           ))}

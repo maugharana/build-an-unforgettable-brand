@@ -1,63 +1,85 @@
 import { Suspense, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { MeshDistortMaterial, Sparkles } from "@react-three/drei";
+import * as THREE from "three";
+
+const PALETTE = ["#d9a441", "#e8c473", "#7d8bff", "#e0745c", "#f3f1ec"];
 
 const SECTION_CONFIG = [
-  { position: [1.6, 0.1, 0], scale: 1.55, distort: 0.42, speed: 1.1, rotSpeed: 0.09 },
-  { position: [-1.7, -0.15, -1], scale: 1.05, distort: 0.22, speed: 0.7, rotSpeed: 0.05 },
-  { position: [1.5, 0.35, -0.5], scale: 1.25, distort: 0.55, speed: 1.6, rotSpeed: 0.12 },
-  { position: [-1.5, 0.05, 0], scale: 1.15, distort: 0.3, speed: 0.9, rotSpeed: 0.06 },
-  { position: [1.4, -0.2, -1], scale: 0.95, distort: 0.18, speed: 0.6, rotSpeed: 0.04 },
-  { position: [0, -0.05, -1.2], scale: 1.35, distort: 0.38, speed: 1.2, rotSpeed: 0.1 },
+  { radius: 1.05, rotSpeed: 0.045, spread: 1 },
+  { radius: 0.75, rotSpeed: 0.03, spread: 0.75 },
+  { radius: 1.15, rotSpeed: 0.07, spread: 1.15 },
+  { radius: 0.85, rotSpeed: 0.035, spread: 0.85 },
+  { radius: 0.68, rotSpeed: 0.025, spread: 0.65 },
+  { radius: 0.92, rotSpeed: 0.04, spread: 0.9 },
+  { radius: 1, rotSpeed: 0.05, spread: 1 },
 ];
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-function Centerpiece({ activeIndex }) {
-  const meshRef = useRef(null);
-  const materialRef = useRef(null);
+function useParticleGeometry(count) {
+  return useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const color = new THREE.Color();
+
+    for (let i = 0; i < count; i++) {
+      // Points scattered inside a sphere, denser near the surface for a "cloud shell" look.
+      const r = 1 + Math.pow(Math.random(), 0.5) * 0.6;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+
+      color.set(PALETTE[Math.floor(Math.random() * PALETTE.length)]);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    return { positions, colors };
+  }, [count]);
+}
+
+function ParticleCloud({ activeIndex }) {
+  const pointsRef = useRef(null);
+  const { positions, colors } = useParticleGeometry(1100);
   const state = useRef({ ...SECTION_CONFIG[0] });
 
   useFrame((_, delta) => {
     const target = SECTION_CONFIG[activeIndex] ?? SECTION_CONFIG[0];
     const s = state.current;
-    const t = Math.min(delta * 1.6, 1);
+    const t = Math.min(delta * 1.4, 1);
 
-    s.position[0] = lerp(s.position[0], target.position[0], t);
-    s.position[1] = lerp(s.position[1], target.position[1], t);
-    s.position[2] = lerp(s.position[2], target.position[2], t);
-    s.scale = lerp(s.scale, target.scale, t);
-    s.distort = lerp(s.distort, target.distort, t);
-    s.speed = lerp(s.speed, target.speed, t);
+    s.radius = lerp(s.radius, target.radius, t);
     s.rotSpeed = lerp(s.rotSpeed, target.rotSpeed, t);
+    s.spread = lerp(s.spread, target.spread, t);
 
-    if (meshRef.current) {
-      meshRef.current.position.set(s.position[0], s.position[1], s.position[2]);
-      meshRef.current.scale.setScalar(s.scale);
-      meshRef.current.rotation.x += s.rotSpeed * delta;
-      meshRef.current.rotation.y += s.rotSpeed * 1.4 * delta;
-    }
-    if (materialRef.current) {
-      materialRef.current.distort = s.distort;
-      materialRef.current.speed = s.speed;
+    if (pointsRef.current) {
+      pointsRef.current.scale.setScalar(s.radius);
+      pointsRef.current.rotation.y += s.rotSpeed * delta;
+      pointsRef.current.rotation.x += s.rotSpeed * 0.4 * delta;
     }
   });
 
   return (
-    <mesh ref={meshRef}>
-      <icosahedronGeometry args={[1, 6]} />
-      <MeshDistortMaterial
-        ref={materialRef}
-        color="#d9a441"
-        roughness={0.25}
-        metalness={0.65}
-        wireframe
-        distort={0.4}
-        speed={1}
+    <points ref={pointsRef} position={[1.7, 0.1, -1]}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.026}
+        vertexColors
+        transparent
+        opacity={0.8}
+        sizeAttenuation
+        depthWrite={false}
       />
-    </mesh>
+    </points>
   );
 }
 
@@ -65,8 +87,8 @@ function Rig() {
   const group = useRef(null);
   useFrame((s) => {
     if (!group.current) return;
-    const x = (s.pointer.x * Math.PI) / 40;
-    const y = (s.pointer.y * Math.PI) / 40;
+    const x = (s.pointer.x * Math.PI) / 30;
+    const y = (s.pointer.y * Math.PI) / 30;
     group.current.rotation.y = lerp(group.current.rotation.y, x, 0.03);
     group.current.rotation.x = lerp(group.current.rotation.x, -y, 0.03);
   });
@@ -84,13 +106,10 @@ export default function Scene({ activeIndex }) {
         gl={{ antialias: true, alpha: true }}
       >
         <color attach="background" args={["#0a0a0c"]} />
-        <fog attach="fog" args={["#0a0a0c", 6, 11]} />
-        <ambientLight intensity={0.35} />
-        <pointLight position={[4, 3, 4]} intensity={1.4} color="#d9a441" />
-        <pointLight position={[-4, -2, -3]} intensity={0.5} color="#5c6cff" />
+        <fog attach="fog" args={["#0a0a0c", 4, 8.5]} />
+        <ambientLight intensity={0.4} />
         <Suspense fallback={null}>
-          <Centerpiece activeIndex={activeIndex} />
-          <Sparkles count={90} scale={[9, 6, 6]} size={1.4} speed={0.25} color="#e8c473" opacity={0.5} />
+          <ParticleCloud activeIndex={activeIndex} />
         </Suspense>
         <Rig />
       </Canvas>

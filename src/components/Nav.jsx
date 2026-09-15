@@ -5,6 +5,7 @@ const LINKS = [
   { id: "services", label: "Coaching" },
   { id: "process", label: "Process" },
   { id: "testimonials", label: "Results" },
+  { id: "faq", label: "FAQ" },
   { id: "contact", label: "Contact" },
 ];
 
