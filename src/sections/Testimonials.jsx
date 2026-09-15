@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
-// Placeholder quotes — replace with real client testimonials before launch.
+// Two spots below are still placeholders — swap in the rest of your quotes when ready.
 const QUOTES = [
   {
     quote:
-      "I had a business for a year with nothing to show for it. Three months into coaching, people finally described my brand the way I actually see it.",
+      "Ahmad really has mastered the art of writing. His storytelling systems are an instant hit with my audience.",
     name: "Add your client's name",
     role: "Founder, replace with their business",
   },

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xppwazgz";
+
 export default function Contact() {
   const [status, setStatus] = useState("idle");
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -10,10 +12,24 @@ export default function Contact() {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Wire this up to your email/CRM provider (e.g. Formspree, ConvertKit, Calendly embed).
-    setStatus("sent");
+    setStatus("sending");
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: new FormData(e.target),
+      });
+      if (res.ok) {
+        setStatus("sent");
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
@@ -90,11 +106,24 @@ export default function Contact() {
               placeholder="A sentence or two about your business and where you're stuck."
             />
           </label>
-          <button className="btn btn-primary contact-submit" type="submit">
-            {status === "sent" ? "Message sent — talk soon" : "Book a free strategy call"}
+          <button
+            className="btn btn-primary contact-submit"
+            type="submit"
+            disabled={status === "sending"}
+          >
+            {status === "sending"
+              ? "Sending…"
+              : status === "sent"
+              ? "Message sent — talk soon"
+              : "Book a free strategy call"}
           </button>
           {status === "sent" && (
             <p className="contact-confirm">Thanks — I'll reply within two business days.</p>
+          )}
+          {status === "error" && (
+            <p className="contact-error">
+              Something went wrong sending that. Try again, or email me directly.
+            </p>
           )}
         </motion.form>
       </div>
