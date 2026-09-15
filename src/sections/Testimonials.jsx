@@ -1,24 +1,24 @@
 import { motion } from "framer-motion";
 
-// Two spots below are still placeholders — swap in the rest of your quotes when ready.
+// Roles/businesses are placeholders — swap in each client's title once you have it.
 const QUOTES = [
   {
     quote:
       "Ahmad really has mastered the art of writing. His storytelling systems are an instant hit with my audience.",
-    name: "Add your client's name",
-    role: "Founder, replace with their business",
+    name: "Nasir",
+    role: "Client, Build an Unforgettable Brand",
   },
   {
     quote:
-      "Ahmad didn't hand me a content calendar. He helped me figure out what my brand was actually for — everything got easier after that.",
-    name: "Add your client's name",
-    role: "Founder, replace with their business",
+      "Ahmad knows what he's doing. His storyselling structure has given a new direction to my business.",
+    name: "Kashif",
+    role: "Client, Build an Unforgettable Brand",
   },
   {
     quote:
-      "Working full-time and building a brand felt impossible until we broke it into something I could do in an hour a night.",
-    name: "Add your client's name",
-    role: "Founder, replace with their business",
+      "I want to thank Ahmad for helping with my storytelling content. I used to be afraid in front of the camera because I thought I didn't know what to speak.",
+    name: "Rohit",
+    role: "Client, Build an Unforgettable Brand",
   },
 ];
 
